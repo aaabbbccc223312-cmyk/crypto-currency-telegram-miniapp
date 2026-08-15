@@ -1,36 +1,3044 @@
-<script>
-  const tg = window.Telegram?.WebApp;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
-  const browserGuard = document.getElementById("browserGuard");
-  const app = document.getElementById("app");
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
 
-  // The app is allowed only when loaded through Telegram's
-  // WebApp environment.
-  const isTelegram =
-    !!tg &&
-    typeof tg.ready === "function" &&
-    typeof tg.close === "function" &&
-    typeof tg.initData === "string";
+  <meta
+    name="theme-color"
+    content="#ffffff"
+  >
 
-  if (!isTelegram) {
-    // Browser: keep the actual app hidden.
-    browserGuard.style.display = "flex";
-    app.style.display = "none";
-  } else {
-    // Telegram: hide the block screen and reveal the app.
-    browserGuard.style.display = "none";
-    app.style.display = "block";
+  <title>Crypto & Currency</title>
 
-    tg.ready();
-    tg.expand();
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    // Telegram Back button
-    if (tg.BackButton) {
-      tg.BackButton.show();
+  <style>
+    :root {
+      --bg: #ffffff;
+      --secondary-bg: #f1f1f1;
+      --section-bg: #ffffff;
+      --text: #111111;
+      --hint: #8e8e93;
+      --link: #2481cc;
+      --button: #2481cc;
+      --button-text: #ffffff;
 
-      tg.BackButton.onClick(() => {
-        tg.close();
-      });
+      --border: rgba(127, 127, 127, 0.18);
+
+      --green: #16a34a;
+      --red: #dc2626;
+
+      --radius: 18px;
     }
-  }
-</script>
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    /* ========================================================
+       BROWSER BLOCK SCREEN
+       ======================================================== */
+
+    #browserGuard {
+      position: fixed;
+      inset: 0;
+
+      z-index: 999999;
+
+      display: none;
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 24px;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(36, 129, 204, 0.16),
+          transparent 42%
+        ),
+        var(--bg);
+    }
+
+    .guard-card {
+      width: min(420px, 100%);
+
+      padding: 32px 24px;
+
+      text-align: center;
+
+      background: var(--section-bg);
+
+      border: 1px solid var(--border);
+
+      border-radius: 24px;
+
+      box-shadow:
+        0 18px 60px rgba(0, 0, 0, 0.12);
+    }
+
+    .guard-icon {
+      width: 74px;
+      height: 74px;
+
+      margin: 0 auto 18px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background: rgba(36, 129, 204, 0.12);
+
+      font-size: 34px;
+    }
+
+    .guard-title {
+      margin: 0 0 10px;
+
+      font-size: 25px;
+
+      line-height: 1.2;
+    }
+
+    .guard-text {
+      margin: 0 0 22px;
+
+      color: var(--hint);
+
+      font-size: 15px;
+
+      line-height: 1.5;
+    }
+
+    #launchTelegramBtn {
+      width: 100%;
+
+      min-height: 52px;
+
+      border: none;
+
+      border-radius: 14px;
+
+      background: var(--button);
+
+      color: var(--button-text);
+
+      font-size: 16px;
+
+      font-weight: 750;
+
+      cursor: pointer;
+
+      transition:
+        transform 0.15s ease,
+        opacity 0.15s ease;
+    }
+
+    #launchTelegramBtn:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    .guard-note {
+      margin: 14px 0 0;
+
+      color: var(--hint);
+
+      font-size: 11px;
+    }
+
+    /* ========================================================
+       MAIN APP
+       ======================================================== */
+
+    #app {
+      display: none;
+
+      width: 100%;
+      max-width: 760px;
+
+      margin: 0 auto;
+
+      padding:
+        calc(
+          14px +
+          var(--tg-content-safe-area-inset-top, 0px)
+        )
+        14px
+        calc(
+          24px +
+          var(--tg-content-safe-area-inset-bottom, 0px)
+        );
+    }
+
+    .header {
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 12px;
+
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+
+      align-items: center;
+
+      gap: 11px;
+    }
+
+    .brand-icon {
+      width: 46px;
+      height: 46px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 14px;
+
+      background: rgba(36, 129, 204, 0.12);
+
+      font-size: 23px;
+    }
+
+    .brand-title {
+      margin: 0;
+
+      font-size: 20px;
+
+      font-weight: 800;
+    }
+
+    .brand-subtitle {
+      margin: 3px 0 0;
+
+      color: var(--hint);
+
+      font-size: 12px;
+    }
+
+    .live-pill {
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 7px;
+
+      padding: 7px 10px;
+
+      border-radius: 999px;
+
+      background: rgba(22, 163, 74, 0.1);
+
+      color: var(--green);
+
+      font-size: 12px;
+
+      font-weight: 700;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+
+      background: currentColor;
+    }
+
+    /* ========================================================
+       CARDS
+       ======================================================== */
+
+    .card {
+      margin-bottom: 14px;
+
+      background: var(--section-bg);
+
+      border: 1px solid var(--border);
+
+      border-radius: var(--radius);
+
+      overflow: hidden;
+    }
+
+    .card-body {
+      padding: 16px;
+    }
+
+    .label {
+      display: block;
+
+      margin-bottom: 8px;
+
+      color: var(--hint);
+
+      font-size: 13px;
+
+      font-weight: 650;
+    }
+
+    .input-row {
+      display: flex;
+
+      gap: 9px;
+    }
+
+    #queryInput {
+      flex: 1;
+
+      min-width: 0;
+
+      height: 49px;
+
+      padding: 0 14px;
+
+      border: 1px solid var(--border);
+
+      border-radius: 14px;
+
+      outline: none;
+
+      background: var(--secondary-bg);
+
+      color: var(--text);
+
+      font-size: 16px;
+    }
+
+    #queryInput::placeholder {
+      color: var(--hint);
+    }
+
+    #queryInput:focus {
+      border-color: var(--link);
+
+      box-shadow:
+        0 0 0 3px
+        rgba(36, 129, 204, 0.12);
+    }
+
+    .primary-btn {
+      min-height: 49px;
+
+      padding: 0 17px;
+
+      border: none;
+
+      border-radius: 14px;
+
+      background: var(--button);
+
+      color: var(--button-text);
+
+      font-weight: 750;
+
+      cursor: pointer;
+    }
+
+    .primary-btn:disabled {
+      opacity: 0.55;
+
+      cursor: not-allowed;
+    }
+
+    .examples {
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 7px;
+
+      margin-top: 12px;
+    }
+
+    .chip {
+      padding: 7px 10px;
+
+      border: 1px solid var(--border);
+
+      border-radius: 999px;
+
+      background: var(--secondary-bg);
+
+      color: var(--text);
+
+      font-size: 12px;
+
+      cursor: pointer;
+    }
+
+    /* ========================================================
+       RESULT
+       ======================================================== */
+
+    #resultCard {
+      display: none;
+    }
+
+    .result-header {
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: flex-start;
+
+      gap: 12px;
+
+      margin-bottom: 16px;
+    }
+
+    .result-label {
+      margin: 0 0 5px;
+
+      color: var(--hint);
+
+      font-size: 13px;
+    }
+
+    .result-main {
+      margin: 0;
+
+      font-size: 28px;
+
+      line-height: 1.15;
+
+      font-weight: 850;
+
+      letter-spacing: -0.03em;
+    }
+
+    .direction {
+      padding: 8px 11px;
+
+      border-radius: 999px;
+
+      background: rgba(36, 129, 204, 0.1);
+
+      color: var(--link);
+
+      font-size: 11px;
+
+      font-weight: 750;
+
+      white-space: nowrap;
+    }
+
+    .rate-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+      gap: 9px;
+
+      margin-bottom: 12px;
+    }
+
+    .rate-box {
+      padding: 12px;
+
+      border-radius: 14px;
+
+      background: var(--secondary-bg);
+    }
+
+    .rate-label {
+      margin-bottom: 5px;
+
+      color: var(--hint);
+
+      font-size: 11px;
+    }
+
+    .rate-value {
+      font-size: 14px;
+
+      font-weight: 730;
+
+      word-break: break-word;
+    }
+
+    .share-btn,
+    .reset-btn {
+      width: 100%;
+
+      min-height: 48px;
+
+      border-radius: 14px;
+
+      cursor: pointer;
+
+      font-weight: 700;
+    }
+
+    .share-btn {
+      border: none;
+
+      background: var(--button);
+
+      color: var(--button-text);
+    }
+
+    .reset-btn {
+      margin-top: 9px;
+
+      border: 1px solid var(--border);
+
+      background: var(--secondary-bg);
+
+      color: var(--text);
+    }
+
+    .source-note {
+      margin: 12px 0 0;
+
+      color: var(--hint);
+
+      font-size: 10px;
+
+      line-height: 1.4;
+
+      text-align: center;
+    }
+
+    .source-note a {
+      color: var(--link);
+
+      text-decoration: none;
+    }
+
+    /* ========================================================
+       MARKET
+       ======================================================== */
+
+    .section-title {
+      margin: 18px 3px 10px;
+
+      font-size: 16px;
+
+      font-weight: 800;
+    }
+
+    .market-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+      gap: 10px;
+    }
+
+    .market {
+      padding: 14px;
+
+      background: var(--section-bg);
+
+      border: 1px solid var(--border);
+
+      border-radius: 17px;
+    }
+
+    .market-top {
+      display: flex;
+
+      align-items: center;
+
+      gap: 10px;
+
+      margin-bottom: 13px;
+    }
+
+    .coin-icon {
+      width: 38px;
+      height: 38px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 12px;
+
+      background: var(--secondary-bg);
+
+      font-size: 20px;
+    }
+
+    .coin-name {
+      margin: 0;
+
+      font-size: 14px;
+
+      font-weight: 780;
+    }
+
+    .coin-code {
+      margin: 2px 0 0;
+
+      color: var(--hint);
+
+      font-size: 10px;
+    }
+
+    .market-price {
+      margin: 0 0 5px;
+
+      font-size: 21px;
+
+      font-weight: 850;
+    }
+
+    .market-change {
+      font-size: 12px;
+
+      font-weight: 700;
+    }
+
+    .positive {
+      color: var(--green);
+    }
+
+    .negative {
+      color: var(--red);
+    }
+
+    .neutral {
+      color: var(--hint);
+    }
+
+    /* ========================================================
+       TOAST
+       ======================================================== */
+
+    #toast {
+      position: fixed;
+
+      left: 50%;
+
+      bottom:
+        calc(
+          18px +
+          var(--tg-content-safe-area-inset-bottom, 0px)
+        );
+
+      z-index: 1000000;
+
+      max-width: calc(100% - 28px);
+
+      padding: 11px 14px;
+
+      border-radius: 12px;
+
+      background: #202124;
+
+      color: white;
+
+      font-size: 13px;
+
+      text-align: center;
+
+      opacity: 0;
+
+      pointer-events: none;
+
+      transform:
+        translate(-50%, 20px);
+
+      transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    #toast.show {
+      opacity: 1;
+
+      transform:
+        translate(-50%, 0);
+    }
+
+    /* ========================================================
+       RESPONSIVE
+       ======================================================== */
+
+    @media (max-width: 560px) {
+      #app {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .input-row {
+        flex-direction: column;
+      }
+
+      .primary-btn {
+        width: 100%;
+      }
+
+      .market-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .result-main {
+        font-size: 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ======================================================
+       BROWSER ONLY SCREEN
+       ====================================================== -->
+
+  <section id="browserGuard">
+
+    <div class="guard-card">
+
+      <div class="guard-icon">
+        📱
+      </div>
+
+      <h1 class="guard-title">
+        Open in Telegram
+      </h1>
+
+      <p class="guard-text">
+        This app is available only inside Telegram.
+        Tap the button below to launch it.
+      </p>
+
+      <button
+        id="launchTelegramBtn"
+        type="button"
+      >
+        🚀 Launch App in Telegram
+      </button>
+
+      <p class="guard-note">
+        Browser access is disabled.
+      </p>
+
+    </div>
+
+  </section>
+
+  <!-- ======================================================
+       ACTUAL APP
+       ====================================================== -->
+
+  <main id="app">
+
+    <!-- HEADER -->
+
+    <header class="header">
+
+      <div class="brand">
+
+        <div class="brand-icon">
+          💱
+        </div>
+
+        <div>
+          <h1 class="brand-title">
+            Crypto & Currency
+          </h1>
+
+          <p class="brand-subtitle">
+            Crypto prices & currency rates
+          </p>
+        </div>
+
+      </div>
+
+      <div class="live-pill">
+        <span class="live-dot"></span>
+        Live
+      </div>
+
+    </header>
+
+
+    <!-- QUESTION CARD -->
+
+    <section class="card">
+
+      <div class="card-body">
+
+        <label
+          class="label"
+          for="queryInput"
+        >
+          Ask about a rate
+        </label>
+
+        <div class="input-row">
+
+          <input
+            id="queryInput"
+            type="text"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="50 USD to NGN"
+          >
+
+          <button
+            id="checkBtn"
+            class="primary-btn"
+            type="button"
+          >
+            Check
+          </button>
+
+        </div>
+
+        <div class="examples">
+
+          <button
+            class="chip"
+            data-query="50 USD to NGN"
+          >
+            $50 → ₦
+          </button>
+
+          <button
+            class="chip"
+            data-query="1 BTC to NGN"
+          >
+            1 BTC → ₦
+          </button>
+
+          <button
+            class="chip"
+            data-query="1 SOL to USD"
+          >
+            1 SOL → $
+          </button>
+
+          <button
+            class="chip"
+            data-query="100 EUR to NGN"
+          >
+            €100 → ₦
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- RESULT CARD -->
+
+    <section
+      id="resultCard"
+      class="card"
+    >
+
+      <div class="card-body">
+
+        <div class="result-header">
+
+          <div>
+
+            <p
+              id="resultLabel"
+              class="result-label"
+            >
+              Result
+            </p>
+
+            <h2
+              id="resultMain"
+              class="result-main"
+            >
+              —
+            </h2>
+
+          </div>
+
+          <div
+            id="resultDirection"
+            class="direction"
+          >
+            —
+          </div>
+
+        </div>
+
+
+        <div class="rate-grid">
+
+          <div class="rate-box">
+
+            <div class="rate-label">
+              Rate
+            </div>
+
+            <div
+              id="resultRate"
+              class="rate-value"
+            >
+              —
+            </div>
+
+          </div>
+
+
+          <div class="rate-box">
+
+            <div class="rate-label">
+              Updated
+            </div>
+
+            <div
+              id="resultUpdated"
+              class="rate-value"
+            >
+              —
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <button
+          id="shareBtn"
+          class="share-btn"
+          type="button"
+        >
+          📤 Send to Telegram
+        </button>
+
+
+        <button
+          id="resetBtn"
+          class="reset-btn"
+          type="button"
+        >
+          🔄 New conversion
+        </button>
+
+
+        <p class="source-note">
+          Crypto data:
+          <a
+            href="https://www.coingecko.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            CoinGecko
+          </a>
+
+          ·
+
+          Fiat data:
+          <a
+            href="https://www.exchangerate-api.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ExchangeRate-API
+          </a>
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- MARKET -->
+
+    <h2 class="section-title">
+      📈 Crypto prices
+    </h2>
+
+
+    <section class="market-grid">
+
+      <article class="market">
+
+        <div class="market-top">
+
+          <div class="coin-icon">
+            ₿
+          </div>
+
+          <div>
+
+            <p class="coin-name">
+              Bitcoin
+            </p>
+
+            <p class="coin-code">
+              BTC
+            </p>
+
+          </div>
+
+        </div>
+
+        <p
+          id="btcPrice"
+          class="market-price"
+        >
+          Loading…
+        </p>
+
+        <div
+          id="btcChange"
+          class="market-change neutral"
+        >
+          —
+        </div>
+
+      </article>
+
+
+      <article class="market">
+
+        <div class="market-top">
+
+          <div class="coin-icon">
+            ◎
+          </div>
+
+          <div>
+
+            <p class="coin-name">
+              Solana
+            </p>
+
+            <p class="coin-code">
+              SOL
+            </p>
+
+          </div>
+
+        </div>
+
+        <p
+          id="solPrice"
+          class="market-price"
+        >
+          Loading…
+        </p>
+
+        <div
+          id="solChange"
+          class="market-change neutral"
+        >
+          —
+        </div>
+
+      </article>
+
+    </section>
+
+  </main>
+
+
+  <div id="toast"></div>
+
+
+  <script>
+
+    /* ========================================================
+       IMPORTANT CONFIGURATION
+       ========================================================
+
+       Replace the value below with the exact Telegram
+       Mini App URL you configured in BotFather.
+
+       Example forms can look like:
+
+       https://t.me/YourBot/app
+
+       or another Telegram Mini App link generated by
+       your bot configuration.
+    */
+
+    const TELEGRAM_MINI_APP_URL =
+      "https://t.me/YOUR_BOT_USERNAME/YOUR_MINI_APP";
+
+
+    /* ========================================================
+       TELEGRAM
+       ======================================================== */
+
+    const tg =
+      window.Telegram?.WebApp || null;
+
+
+    const browserGuard =
+      document.getElementById(
+        "browserGuard"
+      );
+
+
+    const app =
+      document.getElementById(
+        "app"
+      );
+
+
+    const launchButton =
+      document.getElementById(
+        "launchTelegramBtn"
+      );
+
+
+    /*
+      Telegram WebApp exposes the WebApp bridge.
+
+      The actual application stays hidden unless the bridge
+      exists.
+    */
+
+    const telegramConfirmed =
+      !!tg &&
+      typeof tg.ready === "function" &&
+      typeof tg.close === "function";
+
+
+    if (!telegramConfirmed) {
+
+      /*
+        BROWSER
+      */
+
+      browserGuard.style.display =
+        "flex";
+
+      app.style.display =
+        "none";
+
+
+      launchButton.addEventListener(
+        "click",
+        () => {
+
+          /*
+            Redirect the visitor to Telegram.
+
+            IMPORTANT:
+            Replace TELEGRAM_MINI_APP_URL above with the
+            real Mini App URL from your Telegram bot.
+          */
+
+          if (
+            !TELEGRAM_MINI_APP_URL ||
+            TELEGRAM_MINI_APP_URL.includes(
+              "YOUR_BOT_USERNAME"
+            )
+          ) {
+
+            alert(
+              "Set your Telegram Mini App URL in the HTML first."
+            );
+
+            return;
+          }
+
+
+          window.location.href =
+            TELEGRAM_MINI_APP_URL;
+
+        }
+      );
+
+    } else {
+
+      /*
+        TELEGRAM
+      */
+
+      browserGuard.style.display =
+        "none";
+
+      app.style.display =
+        "block";
+
+
+      /*
+        Tell Telegram that the Mini App is ready.
+      */
+
+      tg.ready();
+
+
+      /*
+        Request full available height.
+      */
+
+      try {
+        tg.expand();
+      } catch (error) {
+        console.warn(error);
+      }
+
+
+      /*
+        Telegram Back button.
+      */
+
+      try {
+
+        tg.BackButton.show();
+
+        tg.BackButton.onClick(
+          () => {
+            tg.close();
+          }
+        );
+
+      } catch (error) {
+        console.warn(
+          "Back button unavailable:",
+          error
+        );
+      }
+
+    }
+
+
+    /* ========================================================
+       TELEGRAM THEME
+       ======================================================== */
+
+    function applyTelegramTheme() {
+
+      if (!tg) {
+        return;
+      }
+
+      const theme =
+        tg.themeParams || {};
+
+      const root =
+        document.documentElement;
+
+
+      const variables = {
+        bg_color: "--bg",
+        secondary_bg_color:
+          "--secondary-bg",
+        section_bg_color:
+          "--section-bg",
+        text_color: "--text",
+        hint_color: "--hint",
+        link_color: "--link",
+        button_color: "--button",
+        button_text_color:
+          "--button-text"
+      };
+
+
+      for (
+        const [
+          telegramName,
+          cssName
+        ] of Object.entries(
+          variables
+        )
+      ) {
+
+        if (
+          theme[telegramName]
+        ) {
+
+          root.style.setProperty(
+            cssName,
+            theme[telegramName]
+          );
+
+        }
+
+      }
+
+    }
+
+
+    if (telegramConfirmed) {
+
+      applyTelegramTheme();
+
+
+      try {
+
+        tg.onEvent(
+          "themeChanged",
+          applyTelegramTheme
+        );
+
+      } catch (error) {
+        console.warn(error);
+      }
+
+    }
+
+
+    /* ========================================================
+       DOM
+       ======================================================== */
+
+    const queryInput =
+      document.getElementById(
+        "queryInput"
+      );
+
+    const checkBtn =
+      document.getElementById(
+        "checkBtn"
+      );
+
+    const resultCard =
+      document.getElementById(
+        "resultCard"
+      );
+
+    const resultLabel =
+      document.getElementById(
+        "resultLabel"
+      );
+
+    const resultMain =
+      document.getElementById(
+        "resultMain"
+      );
+
+    const resultDirection =
+      document.getElementById(
+        "resultDirection"
+      );
+
+    const resultRate =
+      document.getElementById(
+        "resultRate"
+      );
+
+    const resultUpdated =
+      document.getElementById(
+        "resultUpdated"
+      );
+
+    const shareBtn =
+      document.getElementById(
+        "shareBtn"
+      );
+
+    const resetBtn =
+      document.getElementById(
+        "resetBtn"
+      );
+
+    const btcPrice =
+      document.getElementById(
+        "btcPrice"
+      );
+
+    const btcChange =
+      document.getElementById(
+        "btcChange"
+      );
+
+    const solPrice =
+      document.getElementById(
+        "solPrice"
+      );
+
+    const solChange =
+      document.getElementById(
+        "solChange"
+      );
+
+    const toast =
+      document.getElementById(
+        "toast"
+      );
+
+
+    let currentShareText = "";
+
+
+    /* ========================================================
+       TOAST
+       ======================================================== */
+
+    function showToast(
+      message
+    ) {
+
+      toast.textContent =
+        message;
+
+      toast.classList.add(
+        "show"
+      );
+
+      clearTimeout(
+        showToast.timeout
+      );
+
+      showToast.timeout =
+        setTimeout(
+          () => {
+
+            toast.classList.remove(
+              "show"
+            );
+
+          },
+          2600
+        );
+
+    }
+
+
+    /* ========================================================
+       CURRENCIES
+       ======================================================== */
+
+    const currencyMap = {
+
+      usd: "USD",
+      dollar: "USD",
+      dollars: "USD",
+      "us dollar": "USD",
+      "us dollars": "USD",
+      "$": "USD",
+
+      ngn: "NGN",
+      naira: "NGN",
+      nairas: "NGN",
+      "nigerian naira": "NGN",
+      "nigerian nairas": "NGN",
+      "₦": "NGN",
+
+      eur: "EUR",
+      euro: "EUR",
+      euros: "EUR",
+      "€": "EUR",
+
+      gbp: "GBP",
+      pound: "GBP",
+      pounds: "GBP",
+      "british pound": "GBP",
+      "british pounds": "GBP",
+      "£": "GBP",
+
+      jpy: "JPY",
+      yen: "JPY",
+      "japanese yen": "JPY",
+      "¥": "JPY",
+
+      cny: "CNY",
+      yuan: "CNY",
+      "chinese yuan": "CNY",
+
+      inr: "INR",
+      rupee: "INR",
+      rupees: "INR",
+      "indian rupee": "INR",
+      "indian rupees": "INR",
+      "₹": "INR",
+
+      zar: "ZAR",
+      rand: "ZAR",
+      "south african rand":
+        "ZAR",
+
+      ghs: "GHS",
+      cedi: "GHS",
+      cedis: "GHS",
+      "ghanaian cedi":
+        "GHS",
+
+      kes: "KES",
+      "kenyan shilling":
+        "KES",
+      "kenyan shillings":
+        "KES",
+
+      cad: "CAD",
+      "canadian dollar":
+        "CAD",
+      "canadian dollars":
+        "CAD",
+
+      aud: "AUD",
+      "australian dollar":
+        "AUD",
+      "australian dollars":
+        "AUD",
+
+      chf: "CHF",
+      "swiss franc": "CHF",
+      "swiss francs": "CHF",
+
+      brl: "BRL",
+      "brazilian real":
+        "BRL",
+      "brazilian reals":
+        "BRL",
+
+      mxn: "MXN",
+      "mexican peso":
+        "MXN",
+      "mexican pesos":
+        "MXN"
+    };
+
+
+    const cryptoMap = {
+
+      btc: {
+        id: "bitcoin",
+        code: "BTC"
+      },
+
+      bitcoin: {
+        id: "bitcoin",
+        code: "BTC"
+      },
+
+      sol: {
+        id: "solana",
+        code: "SOL"
+      },
+
+      solana: {
+        id: "solana",
+        code: "SOL"
+      }
+
+    };
+
+
+    const symbols = {
+
+      USD: "$",
+      NGN: "₦",
+      EUR: "€",
+      GBP: "£",
+      JPY: "¥",
+      CNY: "¥",
+      INR: "₹",
+      ZAR: "R",
+      GHS: "GH₵",
+      KES: "KSh",
+      CAD: "C$",
+      AUD: "A$",
+      CHF: "CHF",
+      BRL: "R$",
+      MXN: "MX$"
+
+    };
+
+
+    /* ========================================================
+       HELPERS
+       ======================================================== */
+
+    function escapeRegex(
+      value
+    ) {
+
+      return value.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
+
+    }
+
+
+    function formatNumber(
+      value,
+      maxDigits = 2
+    ) {
+
+      return new Intl.NumberFormat(
+        undefined,
+        {
+          maximumFractionDigits:
+            maxDigits
+        }
+      ).format(value);
+
+    }
+
+
+    function currencySymbol(
+      code
+    ) {
+
+      return (
+        symbols[code] ||
+        code
+      );
+
+    }
+
+
+    function findCurrency(
+      text
+    ) {
+
+      const lower =
+        text.toLowerCase();
+
+
+      const aliases =
+        Object.keys(
+          currencyMap
+        ).sort(
+          (a, b) =>
+            b.length - a.length
+        );
+
+
+      for (
+        const alias of aliases
+      ) {
+
+        if (
+          [
+            "$",
+            "₦",
+            "€",
+            "£",
+            "¥",
+            "₹"
+          ].includes(alias)
+        ) {
+
+          if (
+            lower.includes(alias)
+          ) {
+
+            return currencyMap[
+              alias
+            ];
+
+          }
+
+          continue;
+
+        }
+
+
+        const pattern =
+          new RegExp(
+            "(?<![A-Za-z])" +
+              escapeRegex(alias) +
+              "(?![A-Za-z])",
+            "i"
+          );
+
+
+        if (
+          pattern.test(text)
+        ) {
+
+          return currencyMap[
+            alias
+          ];
+
+        }
+
+      }
+
+
+      return null;
+
+    }
+
+
+    function findCurrencies(
+      text
+    ) {
+
+      const found = [];
+
+      const aliases =
+        Object.keys(
+          currencyMap
+        ).sort(
+          (a, b) =>
+            b.length - a.length
+        );
+
+
+      for (
+        const alias of aliases
+      ) {
+
+        let matched = false;
+
+
+        if (
+          [
+            "$",
+            "₦",
+            "€",
+            "£",
+            "¥",
+            "₹"
+          ].includes(alias)
+        ) {
+
+          matched =
+            text.includes(alias);
+
+        } else {
+
+          const pattern =
+            new RegExp(
+              "(?<![A-Za-z])" +
+                escapeRegex(alias) +
+                "(?![A-Za-z])",
+              "i"
+            );
+
+          matched =
+            pattern.test(text);
+
+        }
+
+
+        if (matched) {
+
+          const code =
+            currencyMap[alias];
+
+
+          if (
+            !found.includes(code)
+          ) {
+
+            found.push(code);
+
+          }
+
+        }
+
+      }
+
+
+      return found;
+
+    }
+
+
+    function findCrypto(
+      text
+    ) {
+
+      const lower =
+        text.toLowerCase();
+
+
+      for (
+        const [
+          alias,
+          crypto
+        ] of Object.entries(
+          cryptoMap
+        )
+      ) {
+
+        const pattern =
+          new RegExp(
+            "(?<![A-Za-z])" +
+              escapeRegex(alias) +
+              "(?![A-Za-z])",
+            "i"
+          );
+
+
+        if (
+          pattern.test(lower)
+        ) {
+
+          return crypto;
+
+        }
+
+      }
+
+
+      return null;
+
+    }
+
+
+    function extractAmount(
+      text
+    ) {
+
+      const cleaned =
+        text.replace(
+          /,/g,
+          ""
+        );
+
+
+      const match =
+        cleaned.match(
+          /(\d+(?:\.\d+)?)/ 
+        );
+
+
+      if (!match) {
+        return null;
+      }
+
+
+      const number =
+        Number(match[1]);
+
+
+      return Number.isFinite(
+        number
+      )
+        ? number
+        : null;
+
+    }
+
+
+    /* ========================================================
+       REQUEST PARSER
+       ======================================================== */
+
+    function parseRequest(
+      text
+    ) {
+
+      const amount =
+        extractAmount(text);
+
+
+      if (
+        amount === null
+      ) {
+
+        return null;
+
+      }
+
+
+      const crypto =
+        findCrypto(text);
+
+
+      const currencies =
+        findCurrencies(text);
+
+
+      /*
+        CRYPTO -> FIAT
+      */
+
+      if (crypto) {
+
+        if (
+          currencies.length >= 1
+        ) {
+
+          return {
+
+            type:
+              "crypto-to-fiat",
+
+            amount,
+
+            cryptoId:
+              crypto.id,
+
+            cryptoCode:
+              crypto.code,
+
+            target:
+              currencies[0]
+
+          };
+
+        }
+
+
+        return {
+
+          type:
+            "crypto-price",
+
+          amount,
+
+          cryptoId:
+            crypto.id,
+
+          cryptoCode:
+            crypto.code
+
+        };
+
+      }
+
+
+      /*
+        FIAT -> FIAT
+      */
+
+      if (
+        currencies.length >= 2
+      ) {
+
+        return {
+
+          type:
+            "fiat-to-fiat",
+
+          amount,
+
+          source:
+            currencies[0],
+
+          target:
+            currencies[1]
+
+        };
+
+      }
+
+
+      return null;
+
+    }
+
+
+    /* ========================================================
+       COINGECKO
+       ======================================================== */
+
+    async function getCryptoPrices() {
+
+      const url =
+        "https://api.coingecko.com/api/v3/simple/price" +
+        "?ids=bitcoin,solana" +
+        "&vs_currencies=usd,ngn,eur" +
+        "&include_24hr_change=true" +
+        "&include_last_updated_at=true";
+
+
+      const response =
+        await fetch(
+          url,
+          {
+            cache:
+              "no-store"
+          }
+        );
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          "Crypto price service is unavailable."
+        );
+
+      }
+
+
+      return response.json();
+
+    }
+
+
+    /* ========================================================
+       FIAT API
+       ======================================================== */
+
+    async function getFiatRates(
+      base
+    ) {
+
+      const url =
+        "https://open.er-api.com/v6/latest/" +
+        encodeURIComponent(
+          base
+        );
+
+
+      const response =
+        await fetch(
+          url,
+          {
+            cache:
+              "no-store"
+          }
+        );
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          "Currency service is unavailable."
+        );
+
+      }
+
+
+      const data =
+        await response.json();
+
+
+      if (
+        data.result !==
+        "success"
+      ) {
+
+        throw new Error(
+          "Currency rate unavailable."
+        );
+
+      }
+
+
+      return data;
+
+    }
+
+
+    /* ========================================================
+       SHOW RESULT
+       ======================================================== */
+
+    function showResult(
+      data
+    ) {
+
+      resultLabel.textContent =
+        data.label;
+
+      resultMain.textContent =
+        data.main;
+
+      resultDirection.textContent =
+        data.direction;
+
+      resultRate.textContent =
+        data.rate;
+
+      resultUpdated.textContent =
+        data.updated;
+
+
+      currentShareText =
+        data.shareText;
+
+
+      resultCard.style.display =
+        "block";
+
+
+      resultCard.scrollIntoView({
+        behavior:
+          "smooth",
+        block:
+          "nearest"
+      });
+
+    }
+
+
+    /* ========================================================
+       FIAT CONVERSION
+       ======================================================== */
+
+    async function convertFiat(
+      request
+    ) {
+
+      const data =
+        await getFiatRates(
+          request.source
+        );
+
+
+      const rate =
+        data.rates[
+          request.target
+        ];
+
+
+      if (
+        typeof rate !==
+        "number"
+      ) {
+
+        throw new Error(
+          "That currency is not supported."
+        );
+
+      }
+
+
+      const converted =
+        request.amount *
+        rate;
+
+
+      const main =
+        `${currencySymbol(
+          request.source
+        )}${formatNumber(
+          request.amount
+        )} ${
+          request.source
+        } = ${currencySymbol(
+          request.target
+        )}${formatNumber(
+          converted,
+          converted >= 1
+            ? 2
+            : 6
+        )} ${
+          request.target
+        }`;
+
+
+      const rateText =
+        `1 ${
+          request.source
+        } = ${currencySymbol(
+          request.target
+        )}${formatNumber(
+          rate,
+          rate >= 1
+            ? 4
+            : 8
+        )} ${
+          request.target
+        }`;
+
+
+      const updated =
+        data.time_last_update_utc ||
+        "Unknown";
+
+
+      showResult({
+
+        label:
+          "Currency conversion",
+
+        main,
+
+        direction:
+          `${request.source} → ${request.target}`,
+
+        rate:
+          rateText,
+
+        updated,
+
+        shareText:
+          `💱 Currency Conversion\n\n` +
+          `${main}\n\n` +
+          `📊 Rate: ${rateText}\n` +
+          `🕒 Updated: ${updated}`
+
+      });
+
+    }
+
+
+    /* ========================================================
+       CRYPTO CONVERSION
+       ======================================================== */
+
+    async function convertCrypto(
+      request
+    ) {
+
+      const cryptoData =
+        await getCryptoPrices();
+
+
+      const coin =
+        cryptoData[
+          request.cryptoId
+        ];
+
+
+      if (!coin) {
+
+        throw new Error(
+          "Crypto data unavailable."
+        );
+
+      }
+
+
+      /*
+        Directly supported target
+      */
+
+      if (
+        typeof coin[
+          request.target.toLowerCase()
+        ] === "number"
+      ) {
+
+        const unitPrice =
+          coin[
+            request.target.toLowerCase()
+          ];
+
+
+        const total =
+          request.amount *
+          unitPrice;
+
+
+        const main =
+          `${formatNumber(
+            request.amount,
+            8
+          )} ${
+            request.cryptoCode
+          } = ${currencySymbol(
+            request.target
+          )}${formatNumber(
+            total,
+            total >= 1
+              ? 2
+              : 8
+          )} ${
+            request.target
+          }`;
+
+
+        const rateText =
+          `1 ${
+            request.cryptoCode
+          } = ${currencySymbol(
+            request.target
+          )}${formatNumber(
+            unitPrice,
+            unitPrice >= 1
+              ? 2
+              : 8
+          )} ${
+            request.target
+          }`;
+
+
+        const updated =
+          coin.last_updated_at
+            ? new Date(
+                coin.last_updated_at *
+                  1000
+              ).toLocaleString()
+            : "Live";
+
+
+        showResult({
+
+          label:
+            `${request.cryptoCode} conversion`,
+
+          main,
+
+          direction:
+            `${request.cryptoCode} → ${request.target}`,
+
+          rate:
+            rateText,
+
+          updated,
+
+          shareText:
+            `🪙 Crypto Conversion\n\n` +
+            `${main}\n\n` +
+            `📊 Rate: ${rateText}\n` +
+            `🕒 Updated: ${updated}`
+
+        });
+
+
+        return;
+
+      }
+
+
+      /*
+        Fallback:
+        Crypto USD price × USD -> target fiat rate
+      */
+
+      const usdPrice =
+        coin.usd;
+
+
+      if (
+        typeof usdPrice !==
+        "number"
+      ) {
+
+        throw new Error(
+          "USD crypto price unavailable."
+        );
+
+      }
+
+
+      if (
+        request.target ===
+        "USD"
+      ) {
+
+        const total =
+          request.amount *
+          usdPrice;
+
+
+        const main =
+          `${formatNumber(
+            request.amount,
+            8
+          )} ${
+            request.cryptoCode
+          } = $${formatNumber(
+            total,
+            2
+          )} USD`;
+
+
+        showResult({
+
+          label:
+            `${request.cryptoCode} conversion`,
+
+          main,
+
+          direction:
+            `${request.cryptoCode} → USD`,
+
+          rate:
+            `1 ${
+              request.cryptoCode
+            } = $${formatNumber(
+              usdPrice,
+              2
+            )} USD`,
+
+          updated:
+            coin.last_updated_at
+              ? new Date(
+                  coin.last_updated_at *
+                    1000
+                ).toLocaleString()
+              : "Live",
+
+          shareText:
+            `🪙 Crypto Conversion\n\n` +
+            `${main}\n\n` +
+            `📊 Rate: 1 ${request.cryptoCode} = $${formatNumber(
+              usdPrice,
+              2
+            )} USD`
+
+        });
+
+
+        return;
+
+      }
+
+
+      const fiat =
+        await getFiatRates(
+          "USD"
+        );
+
+
+      const fiatRate =
+        fiat.rates[
+          request.target
+        ];
+
+
+      if (
+        typeof fiatRate !==
+        "number"
+      ) {
+
+        throw new Error(
+          "That target currency is not available."
+        );
+
+      }
+
+
+      const unitPrice =
+        usdPrice *
+        fiatRate;
+
+
+      const total =
+        request.amount *
+        unitPrice;
+
+
+      const main =
+        `${formatNumber(
+          request.amount,
+          8
+        )} ${
+          request.cryptoCode
+        } = ${currencySymbol(
+          request.target
+        )}${formatNumber(
+          total,
+          total >= 1
+            ? 2
+            : 8
+        )} ${
+          request.target
+        }`;
+
+
+      const rateText =
+        `1 ${
+          request.cryptoCode
+        } = ${currencySymbol(
+          request.target
+        )}${formatNumber(
+          unitPrice,
+          unitPrice >= 1
+            ? 2
+            : 8
+        )} ${
+          request.target
+        }`;
+
+
+      showResult({
+
+        label:
+          `${request.cryptoCode} conversion`,
+
+        main,
+
+        direction:
+          `${request.cryptoCode} → ${request.target}`,
+
+        rate:
+          rateText,
+
+        updated:
+          coin.last_updated_at
+            ? new Date(
+                coin.last_updated_at *
+                  1000
+              ).toLocaleString()
+            : "Live",
+
+        shareText:
+          `🪙 Crypto Conversion\n\n` +
+          `${main}\n\n` +
+          `📊 Rate: ${rateText}`
+
+      });
+
+    }
+
+
+    /* ========================================================
+       CRYPTO PRICE
+       ======================================================== */
+
+    async function showCryptoPrice(
+      request
+    ) {
+
+      const data =
+        await getCryptoPrices();
+
+
+      const coin =
+        data[
+          request.cryptoId
+        ];
+
+
+      if (!coin) {
+
+        throw new Error(
+          "Crypto price unavailable."
+        );
+
+      }
+
+
+      const usd =
+        coin.usd;
+
+
+      const ngn =
+        coin.ngn;
+
+
+      const eur =
+        coin.eur;
+
+
+      const main =
+        `${request.cryptoCode} = $${formatNumber(
+          usd,
+          usd >= 1
+            ? 2
+            : 8
+        )} USD`;
+
+
+      showResult({
+
+        label:
+          `${request.cryptoCode} live price`,
+
+        main,
+
+        direction:
+          request.cryptoCode,
+
+        rate:
+          `₦${formatNumber(
+            ngn,
+            ngn >= 1
+              ? 2
+              : 4
+          )} NGN · €${formatNumber(
+            eur,
+            eur >= 1
+              ? 2
+              : 6
+          )} EUR`,
+
+        updated:
+          coin.last_updated_at
+            ? new Date(
+                coin.last_updated_at *
+                  1000
+              ).toLocaleString()
+            : "Live",
+
+        shareText:
+          `🪙 ${request.cryptoCode} Price\n\n` +
+          `${main}\n` +
+          `₦${formatNumber(
+            ngn,
+            2
+          )} NGN\n` +
+          `€${formatNumber(
+            eur,
+            2
+          )} EUR`
+
+      });
+
+    }
+
+
+    /* ========================================================
+       MAIN QUERY
+       ======================================================== */
+
+    async function runQuery() {
+
+      const text =
+        queryInput.value.trim();
+
+
+      if (!text) {
+
+        showToast(
+          "Enter a currency or crypto question."
+        );
+
+        queryInput.focus();
+
+        return;
+
+      }
+
+
+      const request =
+        parseRequest(
+          text
+        );
+
+
+      if (!request) {
+
+        showToast(
+          "Try 50 USD to NGN, 1 BTC to NGN, or 1 SOL to USD."
+        );
+
+        return;
+
+      }
+
+
+      checkBtn.disabled =
+        true;
+
+
+      checkBtn.textContent =
+        "Checking…";
+
+
+      try {
+
+        if (
+          request.type ===
+          "fiat-to-fiat"
+        ) {
+
+          await convertFiat(
+            request
+          );
+
+        } else if (
+          request.type ===
+          "crypto-to-fiat"
+        ) {
+
+          await convertCrypto(
+            request
+          );
+
+        } else if (
+          request.type ===
+          "crypto-price"
+        ) {
+
+          await showCryptoPrice(
+            request
+          );
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          error
+        );
+
+        showToast(
+          error.message ||
+          "Unable to get the current rate."
+        );
+
+      } finally {
+
+        checkBtn.disabled =
+          false;
+
+        checkBtn.textContent =
+          "Check";
+
+      }
+
+    }
+
+
+    /* ========================================================
+       MARKET CARDS
+       ======================================================== */
+
+    async function loadMarket() {
+
+      try {
+
+        const data =
+          await getCryptoPrices();
+
+
+        const btc =
+          data.bitcoin;
+
+
+        const sol =
+          data.solana;
+
+
+        if (btc) {
+
+          btcPrice.textContent =
+            `$${formatNumber(
+              btc.usd,
+              btc.usd >= 1
+                ? 2
+                : 8
+            )}`;
+
+
+          if (
+            typeof btc.usd_24h_change ===
+            "number"
+          ) {
+
+            const change =
+              btc.usd_24h_change;
+
+
+            btcChange.textContent =
+              `${change >= 0 ? "▲" : "▼"} ` +
+              `${Math.abs(
+                change
+              ).toFixed(2)}% 24h`;
+
+
+            btcChange.className =
+              "market-change " +
+              (
+                change > 0
+                  ? "positive"
+                  : change < 0
+                  ? "negative"
+                  : "neutral"
+              );
+
+          }
+
+        }
+
+
+        if (sol) {
+
+          solPrice.textContent =
+            `$${formatNumber(
+              sol.usd,
+              sol.usd >= 1
+                ? 2
+                : 8
+            )}`;
+
+
+          if (
+            typeof sol.usd_24h_change ===
+            "number"
+          ) {
+
+            const change =
+              sol.usd_24h_change;
+
+
+            solChange.textContent =
+              `${change >= 0 ? "▲" : "▼"} ` +
+              `${Math.abs(
+                change
+              ).toFixed(2)}% 24h`;
+
+
+            solChange.className =
+              "market-change " +
+              (
+                change > 0
+                  ? "positive"
+                  : change < 0
+                  ? "negative"
+                  : "neutral"
+              );
+
+          }
+
+        }
+
+      } catch (
+        error
+      ) {
+
+        console.error(
+          error
+        );
+
+        btcPrice.textContent =
+          "Unavailable";
+
+        solPrice.textContent =
+          "Unavailable";
+
+      }
+
+    }
+
+
+    /* ========================================================
+       SHARE
+       ======================================================== */
+
+    shareBtn.addEventListener(
+      "click",
+      () => {
+
+        if (
+          !currentShareText
+        ) {
+
+          showToast(
+            "Run a conversion first."
+          );
+
+          return;
+
+        }
+
+
+        /*
+          Telegram sendData() is available for the
+          appropriate Mini App launch modes.
+
+          The data is sent to the bot and the Mini App
+          can then be closed by Telegram.
+        */
+
+        if (
+          telegramConfirmed &&
+          typeof tg.sendData ===
+            "function"
+        ) {
+
+          try {
+
+            tg.sendData(
+              JSON.stringify({
+
+                type:
+                  "rate_share",
+
+                text:
+                  currentShareText,
+
+                created_at:
+                  new Date()
+                    .toISOString()
+
+              })
+            );
+
+            return;
+
+          } catch (
+            error
+          ) {
+
+            console.error(
+              error
+            );
+
+          }
+
+        }
+
+
+        /*
+          Fallback:
+          copy the result.
+        */
+
+        if (
+          navigator.clipboard
+        ) {
+
+          navigator.clipboard
+            .writeText(
+              currentShareText
+            )
+            .then(
+              () => {
+
+                showToast(
+                  "Result copied."
+                );
+
+              }
+            )
+            .catch(
+              () => {
+
+                showToast(
+                  "Sharing isn't available here."
+                );
+
+              }
+            );
+
+        } else {
+
+          showToast(
+            "Sharing isn't available here."
+          );
+
+        }
+
+      }
+    );
+
+
+    /* ========================================================
+       RESET
+       ======================================================== */
+
+    resetBtn.addEventListener(
+      "click",
+      () => {
+
+        resultCard.style.display =
+          "none";
+
+        currentShareText =
+          "";
+
+        queryInput.value =
+          "";
+
+        queryInput.focus();
+
+        window.scrollTo({
+          top: 0,
+          behavior:
+            "smooth"
+        });
+
+      }
+    );
+
+
+    /* ========================================================
+       CHIP BUTTONS
+       ======================================================== */
+
+    document
+      .querySelectorAll(
+        ".chip"
+      )
+      .forEach(
+        (chip) => {
+
+          chip.addEventListener(
+            "click",
+            () => {
+
+              queryInput.value =
+                chip.dataset.query ||
+                "";
+
+              runQuery();
+
+            }
+          );
+
+        }
+      );
+
+
+    /* ========================================================
+       EVENTS
+       ======================================================== */
+
+    checkBtn.addEventListener(
+      "click",
+      runQuery
+    );
+
+
+    queryInput.addEventListener(
+      "keydown",
+      (event) => {
+
+        if (
+          event.key ===
+          "Enter"
+        ) {
+
+          event.preventDefault();
+
+          runQuery();
+
+        }
+
+      }
+    );
+
+
+    /* ========================================================
+       START
+       ======================================================== */
+
+    if (telegramConfirmed) {
+
+      loadMarket();
+
+      /*
+        Refresh every 2 minutes.
+        This avoids aggressive polling of public APIs.
+      */
+
+      setInterval(
+        loadMarket,
+        120000
+      );
+
+    }
+
+  </script>
+
+</body>
+</html>
