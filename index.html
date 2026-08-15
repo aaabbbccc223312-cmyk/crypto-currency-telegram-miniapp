@@ -8,25 +8,39 @@
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
 
+  <meta
+    name="theme-color"
+    content="#0e1720"
+  >
+
   <title>Crypto & Currency</title>
 
-  <!-- Telegram WebApp SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
+    /* =========================================================
+       GLOBAL
+       ========================================================= */
+
     :root {
       --bg: #ffffff;
       --secondary-bg: #f1f1f1;
       --section-bg: #ffffff;
+
       --text: #111111;
       --hint: #8e8e93;
+
       --link: #2481cc;
       --button: #2481cc;
       --button-text: #ffffff;
+
       --border: rgba(127, 127, 127, 0.18);
 
       --green: #16a34a;
       --red: #dc2626;
+
+      --card-radius: 18px;
     }
 
     * {
@@ -38,6 +52,7 @@
     body {
       margin: 0;
       padding: 0;
+
       width: 100%;
       min-height: 100%;
 
@@ -57,6 +72,7 @@
     body {
       min-height: 100vh;
       min-height: 100dvh;
+
       overflow-x: hidden;
     }
 
@@ -65,13 +81,24 @@
       font: inherit;
     }
 
-    /* ======================================================
+    /* =========================================================
        BROWSER BLOCK SCREEN
-       ====================================================== */
+       ========================================================= */
+
+    /*
+      THIS SCREEN IS VISIBLE BY DEFAULT.
+
+      The actual app is hidden.
+
+      JavaScript only changes this when a genuine Telegram
+      Mini App environment with initData is detected.
+    */
 
     #browserGuard {
       position: fixed;
+
       inset: 0;
+
       z-index: 999999;
 
       display: flex;
@@ -79,109 +106,143 @@
       align-items: center;
       justify-content: center;
 
-      padding: 24px;
+      padding: 20px;
 
-      background:
-        radial-gradient(
-          circle at top,
-          rgba(36, 129, 204, 0.16),
-          transparent 45%
-        ),
-        var(--bg);
+      background: #0e1720;
     }
 
     .guard-card {
-      width: min(420px, 100%);
+      width: min(370px, 100%);
 
-      padding: 32px 24px;
+      padding: 30px 24px 28px;
 
       text-align: center;
 
-      background: var(--section-bg);
-
-      border: 1px solid var(--border);
+      background: #1c2a35;
 
       border-radius: 24px;
 
       box-shadow:
-        0 18px 60px rgba(0, 0, 0, 0.12);
+        0 20px 60px
+        rgba(0, 0, 0, 0.35);
     }
 
-    .guard-icon {
-      width: 76px;
-      height: 76px;
+    /*
+      Telegram-style blue circle.
+    */
 
-      margin: 0 auto 18px;
+    .telegram-logo {
+      width: 80px;
+      height: 80px;
 
-      display: grid;
-      place-items: center;
+      margin: 0 auto 20px;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
 
       border-radius: 50%;
 
-      background: rgba(36, 129, 204, 0.12);
+      background: #229ed9;
 
-      font-size: 34px;
+      box-shadow:
+        0 8px 24px
+        rgba(34, 158, 217, 0.25);
+    }
+
+    .telegram-logo svg {
+      width: 43px;
+      height: 43px;
+
+      fill: white;
     }
 
     .guard-title {
-      margin: 0 0 10px;
+      margin: 0 0 11px;
 
-      font-size: 25px;
+      color: #ffffff;
+
+      font-size: 24px;
 
       line-height: 1.2;
+
+      font-weight: 800;
     }
 
     .guard-text {
-      margin: 0 0 22px;
+      margin: 0 auto 22px;
 
-      color: var(--hint);
+      max-width: 310px;
 
-      font-size: 15px;
+      color: #d7e0e7;
 
-      line-height: 1.5;
+      font-size: 14px;
+
+      line-height: 1.55;
     }
 
-    .guard-button {
+    .launch-button {
       width: 100%;
 
-      min-height: 52px;
+      min-height: 51px;
+
+      padding: 0 18px;
 
       border: none;
 
-      border-radius: 14px;
+      border-radius: 13px;
 
-      background: var(--button);
+      background: #229ed9;
 
-      color: var(--button-text);
+      color: #ffffff;
 
-      font-size: 16px;
+      font-size: 15px;
 
       font-weight: 750;
 
       cursor: pointer;
+
+      box-shadow:
+        0 7px 20px
+        rgba(34, 158, 217, 0.25);
+
+      transition:
+        transform 0.15s ease,
+        opacity 0.15s ease;
     }
 
-    .guard-button:active {
+    .launch-button:hover {
+      opacity: 0.95;
+    }
+
+    .launch-button:active {
       transform: scale(0.98);
     }
 
     .guard-note {
       margin: 13px 0 0;
 
-      color: var(--hint);
+      color: #81909b;
 
       font-size: 11px;
     }
 
-    /* ======================================================
-       ACTUAL APP
-       IMPORTANT: hidden by default
-       ====================================================== */
+    /* =========================================================
+       REAL APP
+       ========================================================= */
+
+    /*
+      IMPORTANT:
+
+      Completely hidden by default.
+    */
 
     #app {
       display: none;
 
       width: 100%;
+
       max-width: 760px;
 
       margin: 0 auto;
@@ -189,19 +250,30 @@
       padding:
         calc(
           14px +
-          var(--tg-content-safe-area-inset-top, 0px)
+          var(
+            --tg-content-safe-area-inset-top,
+            0px
+          )
         )
         14px
         calc(
           24px +
-          var(--tg-content-safe-area-inset-bottom, 0px)
+          var(
+            --tg-content-safe-area-inset-bottom,
+            0px
+          )
         );
     }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
 
     .header {
       display: flex;
 
       align-items: center;
+
       justify-content: space-between;
 
       gap: 12px;
@@ -211,7 +283,9 @@
 
     .brand {
       display: flex;
+
       align-items: center;
+
       gap: 11px;
     }
 
@@ -220,11 +294,13 @@
       height: 46px;
 
       display: grid;
+
       place-items: center;
 
       border-radius: 14px;
 
-      background: rgba(36, 129, 204, 0.12);
+      background:
+        rgba(36, 129, 204, 0.12);
 
       font-size: 23px;
     }
@@ -233,6 +309,7 @@
       margin: 0;
 
       font-size: 20px;
+
       font-weight: 800;
     }
 
@@ -248,17 +325,20 @@
       display: inline-flex;
 
       align-items: center;
+
       gap: 7px;
 
       padding: 7px 10px;
 
       border-radius: 999px;
 
-      background: rgba(22, 163, 74, 0.1);
+      background:
+        rgba(22, 163, 74, 0.1);
 
       color: var(--green);
 
       font-size: 12px;
+
       font-weight: 700;
     }
 
@@ -271,9 +351,9 @@
       background: currentColor;
     }
 
-    /* ======================================================
+    /* =========================================================
        CARDS
-       ====================================================== */
+       ========================================================= */
 
     .card {
       margin-bottom: 14px;
@@ -282,7 +362,7 @@
 
       border: 1px solid var(--border);
 
-      border-radius: 18px;
+      border-radius: var(--card-radius);
 
       overflow: hidden;
     }
@@ -290,6 +370,10 @@
     .card-body {
       padding: 16px;
     }
+
+    /* =========================================================
+       SEARCH
+       ========================================================= */
 
     .label {
       display: block;
@@ -299,16 +383,19 @@
       color: var(--hint);
 
       font-size: 13px;
+
       font-weight: 650;
     }
 
     .input-row {
       display: flex;
+
       gap: 9px;
     }
 
     #queryInput {
       flex: 1;
+
       min-width: 0;
 
       height: 49px;
@@ -316,11 +403,13 @@
       padding: 0 14px;
 
       border: 1px solid var(--border);
+
       border-radius: 14px;
 
       outline: none;
 
       background: var(--secondary-bg);
+
       color: var(--text);
 
       font-size: 16px;
@@ -344,9 +433,11 @@
       padding: 0 17px;
 
       border: none;
+
       border-radius: 14px;
 
       background: var(--button);
+
       color: var(--button-text);
 
       font-weight: 750;
@@ -356,10 +447,13 @@
 
     .primary-btn:disabled {
       opacity: 0.55;
+
+      cursor: not-allowed;
     }
 
     .examples {
       display: flex;
+
       flex-wrap: wrap;
 
       gap: 7px;
@@ -371,9 +465,11 @@
       padding: 7px 10px;
 
       border: 1px solid var(--border);
+
       border-radius: 999px;
 
       background: var(--secondary-bg);
+
       color: var(--text);
 
       font-size: 12px;
@@ -381,9 +477,9 @@
       cursor: pointer;
     }
 
-    /* ======================================================
+    /* =========================================================
        RESULT
-       ====================================================== */
+       ========================================================= */
 
     #resultCard {
       display: none;
@@ -393,6 +489,7 @@
       display: flex;
 
       align-items: flex-start;
+
       justify-content: space-between;
 
       gap: 12px;
@@ -425,7 +522,8 @@
 
       border-radius: 999px;
 
-      background: rgba(36, 129, 204, 0.1);
+      background:
+        rgba(36, 129, 204, 0.1);
 
       color: var(--link);
 
@@ -471,9 +569,10 @@
       word-break: break-word;
     }
 
-    .share-btn,
-    .reset-btn {
+    .share-button,
+    .reset-button {
       width: 100%;
+
       min-height: 48px;
 
       border-radius: 14px;
@@ -483,19 +582,21 @@
       font-weight: 700;
     }
 
-    .share-btn {
+    .share-button {
       border: none;
 
       background: var(--button);
+
       color: var(--button-text);
     }
 
-    .reset-btn {
+    .reset-button {
       margin-top: 9px;
 
       border: 1px solid var(--border);
 
       background: var(--secondary-bg);
+
       color: var(--text);
     }
 
@@ -513,12 +614,13 @@
 
     .source-note a {
       color: var(--link);
+
       text-decoration: none;
     }
 
-    /* ======================================================
-       MARKET
-       ====================================================== */
+    /* =========================================================
+       CRYPTO MARKET
+       ========================================================= */
 
     .section-title {
       margin: 18px 3px 10px;
@@ -562,6 +664,7 @@
       height: 38px;
 
       display: grid;
+
       place-items: center;
 
       border-radius: 12px;
@@ -575,6 +678,7 @@
       margin: 0;
 
       font-size: 14px;
+
       font-weight: 780;
     }
 
@@ -590,11 +694,13 @@
       margin: 0 0 5px;
 
       font-size: 21px;
+
       font-weight: 850;
     }
 
     .market-change {
       font-size: 12px;
+
       font-weight: 700;
     }
 
@@ -610,9 +716,9 @@
       color: var(--hint);
     }
 
-    /* ======================================================
+    /* =========================================================
        TOAST
-       ====================================================== */
+       ========================================================= */
 
     #toast {
       position: fixed;
@@ -622,7 +728,10 @@
       bottom:
         calc(
           18px +
-          var(--tg-content-safe-area-inset-bottom, 0px)
+          var(
+            --tg-content-safe-area-inset-bottom,
+            0px
+          )
         );
 
       z-index: 1000000;
@@ -634,13 +743,15 @@
       border-radius: 12px;
 
       background: #202124;
-      color: #fff;
+
+      color: #ffffff;
 
       font-size: 13px;
 
       text-align: center;
 
       opacity: 0;
+
       pointer-events: none;
 
       transform:
@@ -658,14 +769,15 @@
         translate(-50%, 0);
     }
 
-    /* ======================================================
+    /* =========================================================
        MOBILE
-       ====================================================== */
+       ========================================================= */
 
     @media (max-width: 560px) {
 
       #app {
         padding-left: 12px;
+
         padding-right: 12px;
       }
 
@@ -690,34 +802,53 @@
 
 <body>
 
-  <!-- ======================================================
-       THIS IS THE ONLY THING A NORMAL BROWSER WILL SEE
-       ====================================================== -->
+  <!-- =======================================================
+       BROWSER BLOCK SCREEN
+
+       This is what Chrome/Edge/Safari will see.
+       ======================================================= -->
 
   <section id="browserGuard">
 
     <div class="guard-card">
 
-      <div class="guard-icon">
-        📱
+      <!-- Telegram-style icon -->
+
+      <div class="telegram-logo">
+
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            d="M21.6 3.2c.3-1.2-.2-1.7-1.4-1.3L2.6 8.6c-1.2.4-1.2 1-.2 1.3l4.5 1.4 1.7 5.3c.2.7.4.8.9.8.4 0 .6-.2.9-.5l2.2-2.1 4.5 3.3c.8.4 1.4.2 1.6-.7l3.1-14.2ZM8.6 11l9.9-6.2-8.1 7.2-.3 3.1-1.5-4.1Z"
+          />
+        </svg>
+
       </div>
+
 
       <h1 class="guard-title">
         Open in Telegram
       </h1>
 
+
       <p class="guard-text">
-        This app can only be used inside Telegram.
-        Tap the button below to launch the Mini App.
+        💱 Crypto & Currency is a
+        Telegram Mini App.
+        Please open it from Telegram
+        to use it.
       </p>
+
 
       <button
         id="launchTelegramBtn"
-        class="guard-button"
+        class="launch-button"
         type="button"
       >
         🚀 Launch App in Telegram
       </button>
+
 
       <p class="guard-note">
         Browser access is disabled.
@@ -728,11 +859,15 @@
   </section>
 
 
-  <!-- ======================================================
-       REAL APP
-       ====================================================== -->
+  <!-- =======================================================
+       ACTUAL TELEGRAM MINI APP
+
+       Hidden until Telegram is confirmed.
+       ======================================================= -->
 
   <main id="app">
+
+    <!-- HEADER -->
 
     <header class="header">
 
@@ -756,15 +891,19 @@
 
       </div>
 
+
       <div class="live-pill">
+
         <span class="live-dot"></span>
+
         Live
+
       </div>
 
     </header>
 
 
-    <!-- QUESTION -->
+    <!-- QUERY -->
 
     <section class="card">
 
@@ -777,6 +916,7 @@
           Ask about a rate
         </label>
 
+
         <div class="input-row">
 
           <input
@@ -787,6 +927,7 @@
             spellcheck="false"
             placeholder="50 USD to NGN"
           >
+
 
           <button
             id="checkBtn"
@@ -803,32 +944,35 @@
 
           <button
             class="chip"
-            data-query="50 USD to NGN"
             type="button"
+            data-query="50 USD to NGN"
           >
             $50 → ₦
           </button>
 
+
           <button
             class="chip"
-            data-query="1 BTC to NGN"
             type="button"
+            data-query="1 BTC to NGN"
           >
             1 BTC → ₦
           </button>
 
+
           <button
             class="chip"
-            data-query="1 SOL to USD"
             type="button"
+            data-query="1 SOL to USD"
           >
             1 SOL → $
           </button>
 
+
           <button
             class="chip"
-            data-query="100 EUR to NGN"
             type="button"
+            data-query="100 EUR to NGN"
           >
             €100 → ₦
           </button>
@@ -860,6 +1004,7 @@
               Result
             </p>
 
+
             <h2
               id="resultMain"
               class="result-main"
@@ -868,6 +1013,7 @@
             </h2>
 
           </div>
+
 
           <div
             id="resultDirection"
@@ -887,6 +1033,7 @@
               Rate
             </div>
 
+
             <div
               id="resultRate"
               class="rate-value"
@@ -903,6 +1050,7 @@
               Updated
             </div>
 
+
             <div
               id="resultUpdated"
               class="rate-value"
@@ -917,7 +1065,7 @@
 
         <button
           id="shareBtn"
-          class="share-btn"
+          class="share-button"
           type="button"
         >
           📤 Share result in Telegram
@@ -926,7 +1074,7 @@
 
         <button
           id="resetBtn"
-          class="reset-btn"
+          class="reset-button"
           type="button"
         >
           🔄 New conversion
@@ -971,6 +1119,8 @@
 
     <section class="market-grid">
 
+      <!-- BTC -->
+
       <article class="market">
 
         <div class="market-top">
@@ -978,6 +1128,7 @@
           <div class="coin-icon">
             ₿
           </div>
+
 
           <div>
 
@@ -993,12 +1144,14 @@
 
         </div>
 
+
         <p
           id="btcPrice"
           class="market-price"
         >
           —
         </p>
+
 
         <div
           id="btcChange"
@@ -1010,6 +1163,8 @@
       </article>
 
 
+      <!-- SOL -->
+
       <article class="market">
 
         <div class="market-top">
@@ -1017,6 +1172,7 @@
           <div class="coin-icon">
             ◎
           </div>
+
 
           <div>
 
@@ -1032,12 +1188,14 @@
 
         </div>
 
+
         <p
           id="solPrice"
           class="market-price"
         >
           —
         </p>
+
 
         <div
           id="solChange"
@@ -1053,21 +1211,34 @@
   </main>
 
 
+  <!-- TOAST -->
+
   <div id="toast"></div>
 
 
   <script>
-    /* ======================================================
+    /* =========================================================
        TELEGRAM CONFIG
-       ====================================================== */
+       ========================================================= */
+
+    /*
+      Your bot:
+      @CryptoCurrencyRate2026Bot
+
+      Your Netlify app:
+      https://relaxed-raindrop-091e3e.netlify.app/
+
+      Main Mini App link:
+      https://t.me/CryptoCurrencyRate2026Bot?startapp
+    */
 
     const TELEGRAM_MAIN_APP_URL =
       "https://t.me/CryptoCurrencyRate2026Bot?startapp";
 
 
-    /*
-     * Telegram WebApp object.
-     */
+    /* =========================================================
+       TELEGRAM WEBAPP
+       ========================================================= */
 
     const tg =
       window.Telegram?.WebApp || null;
@@ -1092,53 +1263,51 @@
 
 
     /*
-     * ======================================================
-     * IMPORTANT ENVIRONMENT CHECK
-     * ======================================================
-     *
-     * The app remains hidden unless Telegram provides
-     * actual Mini App initialization data.
-     *
-     * Telegram documents initData as the raw data
-     * transferred to a Mini App.
-     */
+      IMPORTANT:
 
-    const telegramInitData =
+      The page starts with the browser guard visible
+      and the actual app hidden.
+
+      We only reveal the app when Telegram supplies
+      Mini App initialization data.
+    */
+
+    const initData =
       tg &&
       typeof tg.initData === "string"
         ? tg.initData.trim()
         : "";
 
 
-    const isRealTelegramMiniApp =
+    const isTelegramMiniApp =
       !!tg &&
       typeof tg.ready === "function" &&
       typeof tg.close === "function" &&
-      telegramInitData.length > 0;
+      initData.length > 0;
 
 
-    /*
-     * ======================================================
-     * BROWSER
-     * ======================================================
-     */
+    /* =========================================================
+       BROWSER
+       ========================================================= */
 
-    if (!isRealTelegramMiniApp) {
+    if (!isTelegramMiniApp) {
 
       /*
-       * Make absolutely sure the real app is hidden.
-       */
+        Browser:
+        show ONLY the guard.
+      */
 
       browserGuard.style.display =
         "flex";
+
 
       app.style.display =
         "none";
 
 
       /*
-       * Launch Telegram.
-       */
+        Launch Telegram.
+      */
 
       launchButton.addEventListener(
         "click",
@@ -1153,29 +1322,39 @@
 
     } else {
 
-      /*
-       * ====================================================
-       * TELEGRAM
-       * ====================================================
-       */
+      /* ======================================================
+         TELEGRAM
+         ====================================================== */
 
       browserGuard.style.display =
         "none";
+
 
       app.style.display =
         "block";
 
 
       /*
-       * Tell Telegram the app is ready.
-       */
+        Tell Telegram that the app has loaded.
+      */
 
-      tg.ready();
+      try {
+
+        tg.ready();
+
+      } catch (error) {
+
+        console.warn(
+          "Telegram ready error:",
+          error
+        );
+
+      }
 
 
       /*
-       * Full available height.
-       */
+        Expand the Mini App.
+      */
 
       try {
 
@@ -1184,7 +1363,7 @@
       } catch (error) {
 
         console.warn(
-          "Telegram expand failed:",
+          "Telegram expand error:",
           error
         );
 
@@ -1192,12 +1371,13 @@
 
 
       /*
-       * Telegram Back button.
-       */
+        Telegram Back button.
+      */
 
       try {
 
         tg.BackButton.show();
+
 
         tg.BackButton.onClick(
           function () {
@@ -1210,7 +1390,7 @@
       } catch (error) {
 
         console.warn(
-          "Telegram BackButton unavailable:",
+          "Telegram Back button unavailable:",
           error
         );
 
@@ -1219,9 +1399,9 @@
     }
 
 
-    /* ======================================================
+    /* =========================================================
        TELEGRAM THEME
-       ====================================================== */
+       ========================================================= */
 
     function applyTelegramTheme() {
 
@@ -1271,17 +1451,17 @@
         themeMap
       ).forEach(
         function ([
-          telegramName,
-          cssName
+          telegramKey,
+          cssVariable
         ]) {
 
           if (
-            theme[telegramName]
+            theme[telegramKey]
           ) {
 
             root.style.setProperty(
-              cssName,
-              theme[telegramName]
+              cssVariable,
+              theme[telegramKey]
             );
 
           }
@@ -1292,9 +1472,7 @@
     }
 
 
-    if (
-      isRealTelegramMiniApp
-    ) {
+    if (isTelegramMiniApp) {
 
       applyTelegramTheme();
 
@@ -1308,17 +1486,19 @@
 
       } catch (error) {
 
-        console.warn(error);
+        console.warn(
+          "Theme listener unavailable:",
+          error
+        );
 
       }
 
     }
 
 
-    /* ======================================================
-       EVERYTHING BELOW THIS POINT ONLY RUNS AS PART OF
-       THE MINI APP FUNCTIONALITY.
-       ====================================================== */
+    /* =========================================================
+       APP ELEMENTS
+       ========================================================= */
 
     const queryInput =
       document.getElementById(
@@ -1414,9 +1594,9 @@
       "";
 
 
-    /* ======================================================
+    /* =========================================================
        TOAST
-       ====================================================== */
+       ========================================================= */
 
     function showToast(
       message
@@ -1425,13 +1605,16 @@
       toast.textContent =
         message;
 
+
       toast.classList.add(
         "show"
       );
 
+
       clearTimeout(
         showToast.timer
       );
+
 
       showToast.timer =
         setTimeout(
@@ -1448,9 +1631,9 @@
     }
 
 
-    /* ======================================================
-       CURRENCIES
-       ====================================================== */
+    /* =========================================================
+       CURRENCY DATA
+       ========================================================= */
 
     const currencyMap = {
 
@@ -1571,7 +1754,7 @@
     };
 
 
-    const symbols = {
+    const currencySymbols = {
 
       USD: "$",
       NGN: "₦",
@@ -1592,9 +1775,9 @@
     };
 
 
-    /* ======================================================
+    /* =========================================================
        HELPERS
-       ====================================================== */
+       ========================================================= */
 
     function escapeRegex(
       value
@@ -1624,13 +1807,15 @@
     }
 
 
-    function currencySymbol(
-      code
+    function symbolFor(
+      currency
     ) {
 
       return (
-        symbols[code] ||
-        code
+        currencySymbols[
+          currency
+        ] ||
+        currency
       );
 
     }
@@ -1681,8 +1866,8 @@
           const pattern =
             new RegExp(
               "(?<![A-Za-z])" +
-                escapeRegex(alias) +
-                "(?![A-Za-z])",
+              escapeRegex(alias) +
+              "(?![A-Za-z])",
               "i"
             );
 
@@ -1744,8 +1929,8 @@
         const pattern =
           new RegExp(
             "(?<![A-Za-z])" +
-              escapeRegex(alias) +
-              "(?![A-Za-z])",
+            escapeRegex(alias) +
+            "(?![A-Za-z])",
             "i"
           );
 
@@ -1754,7 +1939,9 @@
           pattern.test(lower)
         ) {
 
-          return cryptoMap[alias];
+          return cryptoMap[
+            alias
+          ];
 
         }
 
@@ -1794,23 +1981,18 @@
         Number(match[1]);
 
 
-      if (
-        !Number.isFinite(amount)
-      ) {
-
-        return null;
-
-      }
-
-
-      return amount;
+      return Number.isFinite(
+        amount
+      )
+        ? amount
+        : null;
 
     }
 
 
-    /* ======================================================
+    /* =========================================================
        REQUEST PARSER
-       ====================================================== */
+       ========================================================= */
 
     function parseRequest(
       text
@@ -1836,6 +2018,10 @@
       const currencies =
         findCurrencies(text);
 
+
+      /*
+        BTC / SOL -> currency
+      */
 
       if (crypto) {
 
@@ -1864,6 +2050,12 @@
         }
 
 
+        /*
+          Example:
+          1 BTC
+          1 SOL
+        */
+
         return {
 
           type:
@@ -1881,6 +2073,10 @@
 
       }
 
+
+      /*
+        Currency -> currency
+      */
 
       if (
         currencies.length >= 2
@@ -1909,9 +2105,9 @@
     }
 
 
-    /* ======================================================
+    /* =========================================================
        COINGECKO
-       ====================================================== */
+       ========================================================= */
 
     async function getCryptoPrices() {
 
@@ -1946,9 +2142,9 @@
     }
 
 
-    /* ======================================================
-       FIAT API
-       ====================================================== */
+    /* =========================================================
+       EXCHANGE RATE API
+       ========================================================= */
 
     async function getFiatRates(
       base
@@ -1998,32 +2194,36 @@
     }
 
 
-    /* ======================================================
-       RENDER RESULT
-       ====================================================== */
+    /* =========================================================
+       SHOW RESULT
+       ========================================================= */
 
     function showResult(
-      data
+      result
     ) {
 
       resultLabel.textContent =
-        data.label;
+        result.label;
+
 
       resultMain.textContent =
-        data.main;
+        result.main;
+
 
       resultDirection.textContent =
-        data.direction;
+        result.direction;
+
 
       resultRate.textContent =
-        data.rate;
+        result.rate;
+
 
       resultUpdated.textContent =
-        data.updated;
+        result.updated;
 
 
       currentShareText =
-        data.shareText;
+        result.shareText;
 
 
       resultCard.style.display =
@@ -2031,16 +2231,19 @@
 
 
       resultCard.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest"
+        behavior:
+          "smooth",
+
+        block:
+          "nearest"
       });
 
     }
 
 
-    /* ======================================================
-       FIAT -> FIAT
-       ====================================================== */
+    /* =========================================================
+       FIAT CONVERSION
+       ========================================================= */
 
     async function convertFiat(
       request
@@ -2059,7 +2262,8 @@
 
 
       if (
-        typeof rate !== "number"
+        typeof rate !==
+        "number"
       ) {
 
         throw new Error(
@@ -2070,35 +2274,57 @@
 
 
       const converted =
-        request.amount * rate;
+        request.amount *
+        rate;
+
+
+      const targetDigits =
+        converted >= 1
+          ? 2
+          : 6;
 
 
       const main =
-        `${currencySymbol(
+        symbolFor(
           request.source
-        )}${formatNumber(
+        ) +
+        formatNumber(
           request.amount
-        )} ${request.source} = ` +
-        `${currencySymbol(
+        ) +
+        " " +
+        request.source +
+        " = " +
+        symbolFor(
           request.target
-        )}${formatNumber(
+        ) +
+        formatNumber(
           converted,
-          converted >= 1
-            ? 2
-            : 6
-        )} ${request.target}`;
+          targetDigits
+        ) +
+        " " +
+        request.target;
 
 
       const rateText =
-        `1 ${request.source} = ` +
-        `${currencySymbol(
+        "1 " +
+        request.source +
+        " = " +
+        symbolFor(
           request.target
-        )}${formatNumber(
+        ) +
+        formatNumber(
           rate,
           rate >= 1
             ? 4
             : 8
-        )} ${request.target}`;
+        ) +
+        " " +
+        request.target;
+
+
+      const updated =
+        data.time_last_update_utc ||
+        "Unknown";
 
 
       showResult({
@@ -2109,32 +2335,33 @@
         main,
 
         direction:
-          `${request.source} → ${request.target}`,
+          request.source +
+          " → " +
+          request.target,
 
         rate:
           rateText,
 
-        updated:
-          data.time_last_update_utc ||
-          "Unknown",
+        updated,
 
         shareText:
-          `💱 Currency Conversion\n\n` +
-          `${main}\n\n` +
-          `📊 ${rateText}\n` +
-          `🕒 ${
-            data.time_last_update_utc ||
-            "Unknown"
-          }`
+          "💱 Currency Conversion\n\n" +
+          main +
+          "\n\n" +
+          "📊 " +
+          rateText +
+          "\n" +
+          "🕒 " +
+          updated
 
       });
 
     }
 
 
-    /* ======================================================
-       CRYPTO -> FIAT
-       ====================================================== */
+    /* =========================================================
+       CRYPTO CONVERSION
+       ========================================================= */
 
     async function convertCrypto(
       request
@@ -2164,6 +2391,10 @@
           request.target.toLowerCase()
         ];
 
+
+      /*
+        Fallback through USD.
+      */
 
       if (
         typeof unitPrice !==
@@ -2214,7 +2445,7 @@
           ) {
 
             throw new Error(
-              "Target currency is unavailable."
+              "Target currency unavailable."
             );
 
           }
@@ -2235,36 +2466,48 @@
 
 
       const main =
-        `${formatNumber(
+        formatNumber(
           request.amount,
           8
-        )} ${request.cryptoCode} = ` +
-        `${currencySymbol(
+        ) +
+        " " +
+        request.cryptoCode +
+        " = " +
+        symbolFor(
           request.target
-        )}${formatNumber(
+        ) +
+        formatNumber(
           total,
           total >= 1
             ? 2
             : 8
-        )} ${request.target}`;
+        ) +
+        " " +
+        request.target;
 
 
       const rateText =
-        `1 ${request.cryptoCode} = ` +
-        `${currencySymbol(
+        "1 " +
+        request.cryptoCode +
+        " = " +
+        symbolFor(
           request.target
-        )}${formatNumber(
+        ) +
+        formatNumber(
           unitPrice,
           unitPrice >= 1
             ? 2
             : 8
-        )} ${request.target}`;
+        ) +
+        " " +
+        request.target;
 
 
       const updated =
         coin.last_updated_at
           ? new Date(
-              coin.last_updated_at * 1000
+              coin.last_updated_at *
+              1000
             ).toLocaleString()
           : "Live";
 
@@ -2272,12 +2515,15 @@
       showResult({
 
         label:
-          `${request.cryptoCode} conversion`,
+          request.cryptoCode +
+          " conversion",
 
         main,
 
         direction:
-          `${request.cryptoCode} → ${request.target}`,
+          request.cryptoCode +
+          " → " +
+          request.target,
 
         rate:
           rateText,
@@ -2285,19 +2531,23 @@
         updated,
 
         shareText:
-          `🪙 Crypto Conversion\n\n` +
-          `${main}\n\n` +
-          `📊 ${rateText}\n` +
-          `🕒 ${updated}`
+          "🪙 Crypto Conversion\n\n" +
+          main +
+          "\n\n" +
+          "📊 " +
+          rateText +
+          "\n" +
+          "🕒 " +
+          updated
 
       });
 
     }
 
 
-    /* ======================================================
+    /* =========================================================
        CRYPTO PRICE
-       ====================================================== */
+       ========================================================= */
 
     async function showCryptoPrice(
       request
@@ -2325,35 +2575,41 @@
       const usd =
         coin.usd;
 
+
       const ngn =
         coin.ngn;
+
 
       const eur =
         coin.eur;
 
 
+      const updated =
+        coin.last_updated_at
+          ? new Date(
+              coin.last_updated_at *
+              1000
+            ).toLocaleString()
+          : "Live";
+
+
       const main =
-        `${request.cryptoCode} = $` +
-        `${formatNumber(
+        request.cryptoCode +
+        " = $" +
+        formatNumber(
           usd,
           usd >= 1
             ? 2
             : 8
-        )} USD`;
-
-
-      const updated =
-        coin.last_updated_at
-          ? new Date(
-              coin.last_updated_at * 1000
-            ).toLocaleString()
-          : "Live";
+        ) +
+        " USD";
 
 
       showResult({
 
         label:
-          `${request.cryptoCode} live price`,
+          request.cryptoCode +
+          " live price",
 
         main,
 
@@ -2361,42 +2617,53 @@
           request.cryptoCode,
 
         rate:
-          `₦${formatNumber(
+          "₦" +
+          formatNumber(
             ngn,
             ngn >= 1
               ? 2
               : 4
-          )} NGN · ` +
-          `€${formatNumber(
+          ) +
+          " NGN · €" +
+          formatNumber(
             eur,
             eur >= 1
               ? 2
               : 6
-          )} EUR`,
+          ) +
+          " EUR",
 
         updated,
 
         shareText:
-          `🪙 ${request.cryptoCode} Price\n\n` +
-          `${main}\n` +
-          `₦${formatNumber(
+          "🪙 " +
+          request.cryptoCode +
+          " Price\n\n" +
+          main +
+          "\n" +
+          "₦" +
+          formatNumber(
             ngn,
             2
-          )} NGN\n` +
-          `€${formatNumber(
+          ) +
+          " NGN\n" +
+          "€" +
+          formatNumber(
             eur,
             2
-          )} EUR\n` +
-          `🕒 ${updated}`
+          ) +
+          " EUR\n" +
+          "🕒 " +
+          updated
 
       });
 
     }
 
 
-    /* ======================================================
-       MAIN QUERY
-       ====================================================== */
+    /* =========================================================
+       RUN QUERY
+       ========================================================= */
 
     async function runQuery() {
 
@@ -2424,7 +2691,7 @@
       if (!request) {
 
         showToast(
-          "Try 50 USD to NGN, 1 BTC to NGN, or 1 SOL to USD."
+          "Try: 50 USD to NGN, 1 BTC to NGN, or 1 SOL to USD."
         );
 
         return;
@@ -2434,6 +2701,7 @@
 
       checkBtn.disabled =
         true;
+
 
       checkBtn.textContent =
         "Checking…";
@@ -2469,7 +2737,9 @@
 
       } catch (error) {
 
-        console.error(error);
+        console.error(
+          error
+        );
 
         showToast(
           error.message ||
@@ -2489,9 +2759,9 @@
     }
 
 
-    /* ======================================================
-       CRYPTO CARDS
-       ====================================================== */
+    /* =========================================================
+       MARKET CARDS
+       ========================================================= */
 
     async function loadMarket() {
 
@@ -2509,15 +2779,18 @@
           data.solana;
 
 
+        /* BTC */
+
         if (btc) {
 
           btcPrice.textContent =
-            `$${formatNumber(
+            "$" +
+            formatNumber(
               btc.usd,
               btc.usd >= 1
                 ? 2
                 : 8
-            )}`;
+            );
 
 
           if (
@@ -2530,10 +2803,15 @@
 
 
             btcChange.textContent =
-              `${change >= 0 ? "▲" : "▼"} ` +
-              `${Math.abs(
+              (
+                change >= 0
+                  ? "▲ "
+                  : "▼ "
+              ) +
+              Math.abs(
                 change
-              ).toFixed(2)}% 24h`;
+              ).toFixed(2) +
+              "% 24h";
 
 
             btcChange.className =
@@ -2551,15 +2829,18 @@
         }
 
 
+        /* SOL */
+
         if (sol) {
 
           solPrice.textContent =
-            `$${formatNumber(
+            "$" +
+            formatNumber(
               sol.usd,
               sol.usd >= 1
                 ? 2
                 : 8
-            )}`;
+            );
 
 
           if (
@@ -2572,10 +2853,15 @@
 
 
             solChange.textContent =
-              `${change >= 0 ? "▲" : "▼"} ` +
-              `${Math.abs(
+              (
+                change >= 0
+                  ? "▲ "
+                  : "▼ "
+              ) +
+              Math.abs(
                 change
-              ).toFixed(2)}% 24h`;
+              ).toFixed(2) +
+              "% 24h";
 
 
             solChange.className =
@@ -2595,30 +2881,34 @@
       } catch (error) {
 
         console.error(
-          "Market error:",
+          "Market loading error:",
           error
         );
+
 
         btcPrice.textContent =
           "Unavailable";
 
+
         solPrice.textContent =
           "Unavailable";
 
+
         btcChange.textContent =
-          "Unavailable";
+          "Try again later";
+
 
         solChange.textContent =
-          "Unavailable";
+          "Try again later";
 
       }
 
     }
 
 
-    /* ======================================================
+    /* =========================================================
        SHARE
-       ====================================================== */
+       ========================================================= */
 
     shareBtn.addEventListener(
       "click",
@@ -2636,8 +2926,8 @@
 
 
         /*
-         * Share through Telegram's share URL.
-         */
+          Main Mini Apps can use Telegram's share URL.
+        */
 
         const shareUrl =
           "https://t.me/share/url" +
@@ -2668,9 +2958,9 @@
     );
 
 
-    /* ======================================================
+    /* =========================================================
        RESET
-       ====================================================== */
+       ========================================================= */
 
     resetBtn.addEventListener(
       "click",
@@ -2691,9 +2981,9 @@
     );
 
 
-    /* ======================================================
-       EXAMPLES
-       ====================================================== */
+    /* =========================================================
+       EXAMPLE BUTTONS
+       ========================================================= */
 
     document
       .querySelectorAll(".chip")
@@ -2717,9 +3007,9 @@
       );
 
 
-    /* ======================================================
+    /* =========================================================
        INPUT
-       ====================================================== */
+       ========================================================= */
 
     checkBtn.addEventListener(
       "click",
@@ -2746,16 +3036,24 @@
     );
 
 
-    /* ======================================================
-       START APP LOGIC ONLY INSIDE TELEGRAM
-       ====================================================== */
+    /* =========================================================
+       START ONLY INSIDE TELEGRAM
+       ========================================================= */
 
     if (
-      isRealTelegramMiniApp
+      isTelegramMiniApp
     ) {
+
+      /*
+        Only Telegram gets API calls.
+      */
 
       loadMarket();
 
+
+      /*
+        Refresh every 2 minutes.
+      */
 
       setInterval(
         loadMarket,
@@ -2763,7 +3061,6 @@
       );
 
     }
-
   </script>
 
 </body>
